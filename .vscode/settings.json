@@ -1,0 +1,14 @@
+{
+    "terminal.integrated.env.linux": {
+        "PATH": "/home/svenhe/.platformio/penv/bin:/home/svenhe/.platformio/penv:/home/svenhe/.yarn/bin:/home/svenhe/.config/yarn/global/node_modules/.bin:/home/svenhe/.nvm/versions/node/v8.11.1/bin:/usr/share/Modules/bin:/usr/lib64/ccache:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/svenhe/bin:/home/svenhe/bin:/opt/gitkraken",
+        "PLATFORMIO_CALLER": "vscode"
+    },
+    "files.associations": {
+        "array": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "initializer_list": "cpp"
+    }
+}
