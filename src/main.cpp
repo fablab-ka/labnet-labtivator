@@ -6,9 +6,9 @@
 #define WIFI_PASSWORD "foobar42"
 
 #define MQTT_HOST IPAddress(192, 168, 1, 6)
-#define MQTT_PORT 1880
+#define MQTT_PORT 1883
 
-#define CHANNEL_PREFIX String("FLKA/labtivators/")
+#define CHANNEL_PREFIX String("/FLKA/labtivators")
 
 #define Button1Pin D2
 #define Button2Pin D4
@@ -25,14 +25,8 @@ WiFiEventHandler wifiDisconnectHandler;
 Ticker wifiReconnectTimer;
 String mac;
 
-const char *buildTopic(String postfix) {
-    return (CHANNEL_PREFIX + postfix).c_str();
-}
-
-const char *buildMyTopic(String postfix)
-{
-    return (CHANNEL_PREFIX + mac + postfix).c_str();
-}
+#define BUILD_TOPIC(postfix) (CHANNEL_PREFIX + postfix).c_str()
+#define BUILD_MY_TOPIC(postfix) (CHANNEL_PREFIX + "/" + mac + postfix).c_str()
 
 void connectToMqtt()
 {
@@ -64,13 +58,17 @@ void onMqttConnect(bool sessionPresent)
 {
     Serial.println("Connected to MQTT.");
 
-    mqttClient.publish(buildTopic("/discover"), 0, true, mac.c_str());
-
     Serial.print("Session present: ");
     Serial.println(sessionPresent);
 
-    mqttClient.subscribe(buildMyTopic("/button1"), 2);
-    mqttClient.subscribe(buildMyTopic("/button2"), 2);
+    mqttClient.subscribe(BUILD_MY_TOPIC("/button1"), 2);
+    mqttClient.subscribe(BUILD_MY_TOPIC("/button2"), 2);
+
+    uint16_t packetId = mqttClient.publish(BUILD_TOPIC("/discover"), 2, false, mac.c_str());
+    Serial.print("publish discover to");
+    Serial.print(BUILD_TOPIC("/discover"));
+    Serial.print("with packetId : ");
+    Serial.println(packetId);
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
@@ -118,13 +116,13 @@ void onMqttUnsubscribe(uint16_t packetId)
 
 void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
-    if (topic == buildMyTopic("/button1")) {
+    if (topic == BUILD_MY_TOPIC("/button1")) {
         Serial.println("button1 color received.");
         Serial.print("'");
         Serial.print(payload);
         Serial.println("'");
     }
-    else if (topic == buildMyTopic("/button1"))
+    else if (topic == BUILD_MY_TOPIC("/button1"))
     {
         Serial.println("button2 color received.");
         Serial.print("'");
@@ -168,12 +166,12 @@ void setup()
 }
 
 void loop()
-{
-    if (digitalRead(Button1Pin) == LOW) {
-        mqttClient.publish(buildMyTopic("/command1"), 2, false);
+{/*
+    if (digitalRead(Button1Pin) == HIGH) {
+        mqttClient.publish(BUILD_MY_TOPIC("/command1"), 2, false);
     }
-    else if (digitalRead(Button2Pin) == LOW)
+    else if (digitalRead(Button2Pin) == HIGH)
     {
-        mqttClient.publish(buildMyTopic("/command2"), 2, false);
-    }
+        mqttClient.publish(BUILD_MY_TOPIC("/command2"), 2, false);
+    }*/
 }
