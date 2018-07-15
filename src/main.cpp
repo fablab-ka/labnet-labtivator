@@ -10,12 +10,12 @@
 
 #define CHANNEL_PREFIX String("/FLKA/labtivators")
 
-#define Button1Pin D2
-#define Button2Pin D4
-#define Button1RedPin D6
-#define Button1GreenPin D3
-#define Button2RedPin D7
-#define Button2GreenPin D8
+#define Button1Pin D6
+#define Button2Pin D5
+#define Button1RedPin D3
+#define Button1GreenPin D4
+#define Button2RedPin D1
+#define Button2GreenPin D2
 
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
@@ -121,6 +121,20 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         Serial.print("'");
         Serial.print(payload);
         Serial.println("'");
+
+        if (payload == "red") {
+            digitalWrite(Button1RedPin, LOW);
+            digitalWrite(Button1GreenPin, HIGH);
+        }
+        else if (payload == "green")
+        {
+            digitalWrite(Button1RedPin, HIGH);
+            digitalWrite(Button1GreenPin, LOW);
+        }
+        else
+        {
+            Serial.println("Invalid color payload");
+        }
     }
     else if (topic == BUILD_MY_TOPIC("/button1"))
     {
@@ -128,6 +142,21 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         Serial.print("'");
         Serial.print(payload);
         Serial.println("'");
+
+        if (payload == "red")
+        {
+            digitalWrite(Button2RedPin, LOW);
+            digitalWrite(Button2GreenPin, HIGH);
+        }
+        else if (payload == "green")
+        {
+            digitalWrite(Button2RedPin, HIGH);
+            digitalWrite(Button2GreenPin, LOW);
+        }
+        else
+        {
+            Serial.println("Invalid color payload");
+        }
     }
 }
 
