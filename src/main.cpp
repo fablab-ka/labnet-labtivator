@@ -27,6 +27,11 @@ WiFiEventHandler wifiDisconnectHandler;
 Ticker wifiReconnectTimer;
 String mac;
 
+int lastButton1State = HIGH;
+int lastButton2State = HIGH;
+int lastButton1Change = 0;
+int lastButton2Change = 0;
+
 #define BUILD_TOPIC(postfix) (CHANNEL_PREFIX + postfix).c_str()
 #define BUILD_MY_TOPIC(postfix) (CHANNEL_PREFIX + "/" + mac + postfix).c_str()
 
@@ -274,15 +279,34 @@ void setup()
 }
 
 void loop()
-{/*
-    if (digitalRead(Button1Pin) == LOW)
+{
+    if (digitalRead(Button1Pin) == LOW && (millis() - lastButton1Change) > 100)
     {
-        //Serial.println("Send button1 cmd");
-        //mqttClient.publish(BUILD_MY_TOPIC("/cmd/button1"), 2, false);
+        if (lastButton1State == HIGH)
+        {
+            lastButton1State = LOW;
+            Serial.println("Send button1 cmd");
+            mqttClient.publish(BUILD_MY_TOPIC("/cmd/button1"), 2, false);
+        }
     }
-    else if (digitalRead(Button2Pin) == LOW)
+    else if (lastButton1State == LOW)
     {
-        //Serial.println("Send button2 cmd");
-        //mqttClient.publish(BUILD_MY_TOPIC("/cmd/button2"), 2, false);
-    }*/
+        lastButton1State = HIGH;
+        lastButton1Change = millis();
+    }
+
+    if (digitalRead(Button2Pin) == LOW && (millis() - lastButton2Change) > 100)
+    {
+        if (lastButton2State == HIGH)
+        {
+            lastButton2State = LOW;
+            Serial.println("Send button2 cmd");
+            mqttClient.publish(BUILD_MY_TOPIC("/cmd/button2"), 2, false);
+        }
+    }
+    else if (lastButton2State == LOW)
+    {
+        lastButton2State = HIGH;
+        lastButton2Change = millis();
+    }
 }
