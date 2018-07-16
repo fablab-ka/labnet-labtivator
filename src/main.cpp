@@ -196,10 +196,10 @@ void setup()
 
 void loop()
 {/*
-    if (digitalRead(Button1Pin) == HIGH) {
+    if (digitalRead(Button1Pin) == LOW) {
         mqttClient.publish(BUILD_MY_TOPIC("/command1"), 2, false);
     }
-    else if (digitalRead(Button2Pin) == HIGH)
+    else if (digitalRead(Button2Pin) == LOW)
     {
         mqttClient.publish(BUILD_MY_TOPIC("/command2"), 2, false);
     }*/
