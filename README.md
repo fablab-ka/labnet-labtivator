@@ -19,12 +19,23 @@ a small library to enable esp8266 wemos D1 with a custom shield to connect to MQ
 * description: is sent on button press
 * payload type: empty
 
+```
+/FLKA/labtivators/stat/pong
+```
+* description: is sent on ping message
+* payload type: empty
+
 ### <<< Incoming
 
 ```
-/FLKA/labtivators/<mac>/stat/button1color
-/FLKA/labtivators/<mac>/stat/button2color
+/FLKA/labtivators/<mac>/cmd/setbutton1color
+/FLKA/labtivators/<mac>/cmd/setbutton2color
 ```
 * description: change the LED color of the button
-values: 'red', 'green', 'black'/any
+* values: 'red', 'green', 'black'/any
 * ​​​​​​​type: string
+
+```
+/FLKA/labtivators/<mac>/cmd/ping
+```
+* description: produces a pong message. Used for health check

@@ -30,6 +30,39 @@ String mac;
 #define BUILD_TOPIC(postfix) (CHANNEL_PREFIX + postfix).c_str()
 #define BUILD_MY_TOPIC(postfix) (CHANNEL_PREFIX + "/" + mac + postfix).c_str()
 
+void turnButton1LedRed()
+{
+    digitalWrite(Button1RedPin, HIGH);
+    digitalWrite(Button1GreenPin, LOW);
+}
+void turnButton2LedRed()
+{
+    digitalWrite(Button2RedPin, HIGH);
+    digitalWrite(Button2GreenPin, LOW);
+}
+
+void turnButton1LedGreen()
+{
+    digitalWrite(Button1RedPin, LOW);
+    digitalWrite(Button1GreenPin, HIGH);
+}
+void turnButton2LedGreen()
+{
+    digitalWrite(Button2RedPin, LOW);
+    digitalWrite(Button2GreenPin, HIGH);
+}
+
+void turnButton1LedBlack()
+{
+    digitalWrite(Button1RedPin, LOW);
+    digitalWrite(Button1GreenPin, LOW);
+}
+void turnButton2LedBlack()
+{
+    digitalWrite(Button2RedPin, LOW);
+    digitalWrite(Button2GreenPin, LOW);
+}
+
 void connectToMqtt()
 {
     Serial.println("Connecting to MQTT...");
@@ -63,14 +96,29 @@ void onMqttConnect(bool sessionPresent)
     Serial.print("Session present: ");
     Serial.println(sessionPresent);
 
-    mqttClient.subscribe(BUILD_MY_TOPIC("/stat/button1color"), 2);
-    mqttClient.subscribe(BUILD_MY_TOPIC("/stat/button2color"), 2);
+    String topic1 = BUILD_MY_TOPIC("/cmd/setbutton1color");
+    Serial.print("Subscribe to ");
+    Serial.println(topic1);
+    mqttClient.subscribe(topic1.c_str(), 2);
+
+    String topic2 = BUILD_MY_TOPIC("/cmd/setbutton2color");
+    Serial.print("Subscribe to ");
+    Serial.println(topic2);
+    mqttClient.subscribe(topic2.c_str(), 2);
+
+    String topic3 = BUILD_MY_TOPIC("/cmd/ping");
+    Serial.print("Subscribe to ");
+    Serial.println(topic3);
+    mqttClient.subscribe(topic3.c_str(), 2);
 
     uint16_t packetId = mqttClient.publish(BUILD_TOPIC("/discover"), 2, false, (mac + " v" + VERSION).c_str());
     Serial.print("publish discover to");
     Serial.print(BUILD_TOPIC("/discover"));
-    Serial.print("with packetId : ");
+    Serial.print(" with packetId : ");
     Serial.println(packetId);
+
+    turnButton1LedBlack();
+    turnButton2LedBlack();
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
@@ -118,49 +166,55 @@ void onMqttUnsubscribe(uint16_t packetId)
 
 void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
-    if (topic == BUILD_MY_TOPIC("/button1color")) {
-        Serial.println("button1 color received.");
-        Serial.print("'");
-        Serial.print(payload);
-        Serial.println("'");
+    Serial.println("Message received.");
+    Serial.print("topic: '");
+    Serial.print(topic);
+    Serial.println("'");
+    Serial.print("payload: '");
+    Serial.print(payload);
+    Serial.println("'");
 
-        if (payload == "red") {
-            digitalWrite(Button1RedPin, LOW);
-            digitalWrite(Button1GreenPin, HIGH);
+    String lowerCasePayload = String(payload);
+    lowerCasePayload.toLowerCase();
+
+    if (String(topic).equals(BUILD_MY_TOPIC("/cmd/setbutton1color")))
+    {
+        Serial.println("button1color");
+
+        if (lowerCasePayload.startsWith("red")) {
+            turnButton1LedRed();
         }
-        else if (payload == "green")
+        else if (lowerCasePayload.startsWith("green"))
         {
-            digitalWrite(Button1RedPin, HIGH);
-            digitalWrite(Button1GreenPin, LOW);
+            turnButton1LedGreen();
         }
         else
         {
-            digitalWrite(Button1RedPin, LOW);
-            digitalWrite(Button1GreenPin, LOW);
+            turnButton1LedBlack();
         }
     }
-    else if (topic == BUILD_MY_TOPIC("/button2color"))
+    else if (String(topic).equals(BUILD_MY_TOPIC("/cmd/setbutton2color")))
     {
-        Serial.println("button2 color received.");
-        Serial.print("'");
-        Serial.print(payload);
-        Serial.println("'");
+        Serial.println("button2color");
 
-        if (payload == "red")
+        if (lowerCasePayload.startsWith("red"))
         {
-            digitalWrite(Button2RedPin, LOW);
-            digitalWrite(Button2GreenPin, HIGH);
+            turnButton2LedRed();
         }
-        else if (payload == "green")
+        else if (lowerCasePayload.startsWith("green"))
         {
-            digitalWrite(Button2RedPin, HIGH);
-            digitalWrite(Button2GreenPin, LOW);
+            turnButton2LedGreen();
         }
         else
         {
-            digitalWrite(Button1RedPin, LOW);
-            digitalWrite(Button1GreenPin, LOW);
+            turnButton2LedBlack();
         }
+    }
+    else if (String(topic).equals(BUILD_MY_TOPIC("/cmd/ping")))
+    {
+        Serial.println("ping");
+
+        mqttClient.publish(BUILD_MY_TOPIC("/stat/pong"), 2, false, "Pong!");
     }
 }
 
@@ -184,6 +238,27 @@ void setup()
     pinMode(Button2RedPin, OUTPUT);
     pinMode(Button2GreenPin, OUTPUT);
 
+    Serial.println("Boot animation");
+
+    delay(100);
+    turnButton1LedRed();
+    turnButton2LedGreen();
+    delay(100);
+    turnButton1LedGreen();
+    turnButton2LedRed();
+    delay(100);
+    turnButton1LedRed();
+    turnButton2LedGreen();
+    delay(100);
+    turnButton1LedGreen();
+    turnButton2LedRed();
+    delay(100);
+    turnButton1LedRed();
+    turnButton2LedRed();
+    delay(100);
+
+    Serial.println("Setup");
+
     wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
     wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
 
@@ -200,11 +275,14 @@ void setup()
 
 void loop()
 {/*
-    if (digitalRead(Button1Pin) == LOW) {
-        mqttClient.publish(BUILD_MY_TOPIC("/cmd/button1"), 2, false);
+    if (digitalRead(Button1Pin) == LOW)
+    {
+        //Serial.println("Send button1 cmd");
+        //mqttClient.publish(BUILD_MY_TOPIC("/cmd/button1"), 2, false);
     }
     else if (digitalRead(Button2Pin) == LOW)
     {
-        mqttClient.publish(BUILD_MY_TOPIC("/cmd/button2"), 2, false);
+        //Serial.println("Send button2 cmd");
+        //mqttClient.publish(BUILD_MY_TOPIC("/cmd/button2"), 2, false);
     }*/
 }
