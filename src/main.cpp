@@ -2,6 +2,8 @@
 #include <Ticker.h>
 #include <AsyncMqttClient.h>
 
+#define VERSION "1.0.0"
+
 #define WIFI_SSID "Fablab Karlsruhe"
 #define WIFI_PASSWORD "foobar42"
 
@@ -61,10 +63,10 @@ void onMqttConnect(bool sessionPresent)
     Serial.print("Session present: ");
     Serial.println(sessionPresent);
 
-    mqttClient.subscribe(BUILD_MY_TOPIC("/button1"), 2);
-    mqttClient.subscribe(BUILD_MY_TOPIC("/button2"), 2);
+    mqttClient.subscribe(BUILD_MY_TOPIC("/stat/button1color"), 2);
+    mqttClient.subscribe(BUILD_MY_TOPIC("/stat/button2color"), 2);
 
-    uint16_t packetId = mqttClient.publish(BUILD_TOPIC("/discover"), 2, false, mac.c_str());
+    uint16_t packetId = mqttClient.publish(BUILD_TOPIC("/discover"), 2, false, (mac + " v" + VERSION).c_str());
     Serial.print("publish discover to");
     Serial.print(BUILD_TOPIC("/discover"));
     Serial.print("with packetId : ");
@@ -116,7 +118,7 @@ void onMqttUnsubscribe(uint16_t packetId)
 
 void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
-    if (topic == BUILD_MY_TOPIC("/button1")) {
+    if (topic == BUILD_MY_TOPIC("/button1color")) {
         Serial.println("button1 color received.");
         Serial.print("'");
         Serial.print(payload);
@@ -133,10 +135,11 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         }
         else
         {
-            Serial.println("Invalid color payload");
+            digitalWrite(Button1RedPin, LOW);
+            digitalWrite(Button1GreenPin, LOW);
         }
     }
-    else if (topic == BUILD_MY_TOPIC("/button1"))
+    else if (topic == BUILD_MY_TOPIC("/button2color"))
     {
         Serial.println("button2 color received.");
         Serial.print("'");
@@ -155,7 +158,8 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         }
         else
         {
-            Serial.println("Invalid color payload");
+            digitalWrite(Button1RedPin, LOW);
+            digitalWrite(Button1GreenPin, LOW);
         }
     }
 }
@@ -197,10 +201,10 @@ void setup()
 void loop()
 {/*
     if (digitalRead(Button1Pin) == LOW) {
-        mqttClient.publish(BUILD_MY_TOPIC("/command1"), 2, false);
+        mqttClient.publish(BUILD_MY_TOPIC("/cmd/button1"), 2, false);
     }
     else if (digitalRead(Button2Pin) == LOW)
     {
-        mqttClient.publish(BUILD_MY_TOPIC("/command2"), 2, false);
+        mqttClient.publish(BUILD_MY_TOPIC("/cmd/button2"), 2, false);
     }*/
 }
